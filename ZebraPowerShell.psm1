@@ -222,19 +222,7 @@ function Start-TwinPrintCalibration{
     $Port = 9100
 
     #SET BOTTOM PRINT SETTINGS TO MEDIA-TYPE "NON-CONTINUOUS"
-    $Data = "^XA^MNw^XZ"
-    Send-NetworkDataNoReply -Computer $TwinPrintBottom -Port $Port -Data $Data
-
-    Start-Sleep -Milliseconds 300
-
-    #Clear Buffer
-    $Data = "~JA"
-    Send-NetworkDataNoReply -Computer $TwinPrintBottom -Port $Port -Data $Data
-
-    Start-Sleep -Milliseconds 300
-
-    #Save configuration
-    $Data = "^XA^JUs^XZ"
+    $Data = "^XA^MNw^JUs^XZ"
     Send-NetworkDataNoReply -Computer $TwinPrintBottom -Port $Port -Data $Data
 
     Start-Sleep -Milliseconds 300
@@ -243,22 +231,110 @@ function Start-TwinPrintCalibration{
     $Data = "~JR"
     Send-NetworkDataNoReply -Computer $TwinPrintBottom -Port $Port -Data $Data
 
-    Start-Sleep -Milliseconds 3000
+    Start-Sleep -Seconds 20
 
     #Wait for printer to be back online
-    Wait-PrinterAVailable
+    Wait-PrinterAVailable -PrinterName $TwinPrintBottom
 
     Start-Sleep -Milliseconds 300
 
     #CALIBRATE
     Send-TwinPrintCalibrationCommands -TwinPrintTop $TwinPrintTop -TwinPrintBottom $TwinPrintBottom
 
-    Start-Sleep -Seconds 60
+    Start-Sleep -Seconds 20
 
     #SET BOTTOM PRINTER SETTINGS TO MEDIA-TYPE "CONTINUOUS"
-    $Data = "^XA^MNn^XZ"
+    $Data = "^XA^MNn^JUs^XZ"
     Send-NetworkDataNoReply -Computer $TwinPrintBottom -Port $Port -Data $Data
 
-    #TEST FEED
-    $Data = "^XA^PH^XZ"
+    Start-Sleep -Milliseconds 300
+
+    #Power cycle
+    $Data = "~JR"
+    Send-NetworkDataNoReply -Computer $TwinPrintBottom -Port $Port -Data $Data
+
+    Start-Sleep -Seconds 20
+
+    Wait-PrinterAVailable -PrinterName $TwinPrintBottom
+
+    Write-Host "Calibration Finished"
+}
+function Send-TwinPrintPostCalibrationTestPrint{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)][string]$TwinPrintTop,
+        [Parameter(Mandatory)][string]$TwinPrintBottom
+        )
+$TopData = "@^XA
+^SZ2^JMA
+^MCY^PMN
+^PW812
+~JSN
+^JZY
+^LH0,0^LRN
+^XZ
+^XA
+^DFE:SSFMT000.ZPL^FS
+^FT291,739
+^CI0
+^A0N,34,46^FDCALIBRATION^FS
+^FT302,773
+^A0N,34,46^FDCOMPLETED^FS
+^FT270,808
+^A0N,34,46^FDSUCCESSFULLY^FS
+^FT291,1018
+^A0N,34,46^FDCALIBRATION^FS
+^FT302,1053
+^A0N,34,46^FDCOMPLETED^FS
+^FT270,1088
+^A0N,34,46^FDSUCCESSFULLY^FS
+^FT291,459
+^A0N,34,46^FDCALIBRATION^FS
+^FT302,494
+^A0N,34,46^FDCOMPLETED^FS
+^FT270,529
+^A0N,34,46^FDSUCCESSFULLY^FS
+^XZ
+^XA
+^XFE:SSFMT000.ZPL^FS
+^PQ1,0,1,Y
+^XZ
+@"
+$BottomData = "@^XA
+^SZ2^JMA
+^MCY^PMN
+^PW812
+~JSN
+^JZY
+^LH0,0^LRN
+^XZ
+^XA
+^DFE:SSFMT000.ZPL^FS
+^FT291,333
+^CI0
+^A0N,34,46^FDCALIBRATION^FS
+^FT302,367
+^A0N,34,46^FDCOMPLETED^FS
+^FT270,402
+^A0N,34,46^FDSUCCESSFULLY^FS
+^FT291,612
+^A0N,34,46^FDCALIBRATION^FS
+^FT302,647
+^A0N,34,46^FDCOMPLETED^FS
+^FT270,682
+^A0N,34,46^FDSUCCESSFULLY^FS
+^FT291,53
+^A0N,34,46^FDCALIBRATION^FS
+^FT302,88
+^A0N,34,46^FDCOMPLETED^FS
+^FT270,123
+^A0N,34,46^FDSUCCESSFULLY^FS
+^XZ
+^XA
+^XFE:SSFMT000.ZPL^FS
+^PQ1,0,1,Y
+^XZ
+@"
+Send-NetworkDataNoReply -Computer $TwinPrintTop -Port 9100 -Data $TopData
+Send-NetworkDataNoReply -Computer $TwinPrintBottom -Port 9100 -Data $BottomData
 }
