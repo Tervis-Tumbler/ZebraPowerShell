@@ -252,12 +252,6 @@ function Start-TwinPrintCalibration{
     #Power cycle
     $Data = "~JR"
     Send-NetworkDataNoReply -Computer $TwinPrintBottom -Port $Port -Data $Data
-
-    Start-Sleep -Seconds 20
-
-    Wait-PrinterAVailable -PrinterName $TwinPrintBottom
-
-    Write-Host "Calibration Finished"
 }
 function Send-TwinPrintPostCalibrationTestPrint{
     [CmdletBinding()]
