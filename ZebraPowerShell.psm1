@@ -125,17 +125,22 @@ function Wait-PrinterAVailable{
     }
 }
 function Get-ZebraPrinters {
-$PrintServer = "Disney"
-$DriverNameMatchString = "ZDesigner*"
-$DriverNamesToExcludeMatchString = "*ZDesigner LP 2844*"
-$DeviceTypesToExcludeMatchString = "Print3D"
-    
-$PrinterObjects = Get-Printer -ComputerName "Disney" | where {$_.DriverName -like $DriverNameMatchString -and $_.DriverName -notlike $DriverNamesToExcludeMatchString -and $_.DeviceType -notlike $DeviceTypesToExcludeMatchString}
-$PortNames = $PrinterObjects.PortName
-$PortObjects = Foreach ($PortName in $PortNames) {Get-WmiObject -Class Win32_TCPIPPrinterPort -ComputerName Disney -Filter "Name='$PortName'"}
-$PortIPs = $PortObjects.hostaddress
+    [CmdletBinding()]
+    param ()
+    Write-Host "Hello World"
+    $PrintServer = "Disney"
+    $DriverNameMatchString = "ZDesigner*"
+    $DriverNamesToExcludeMatchString = "*ZDesigner LP 2844*"
+    $DeviceTypesToExcludeMatchString = "Print3D"
+    $PrinterObjects = Get-Printer -ComputerName "Disney" | where {$_.DriverName -like $DriverNameMatchString -and $_.DriverName -notlike $DriverNamesToExcludeMatchString -and $_.DeviceType -notlike $DeviceTypesToExcludeMatchString}
+    $PortNames = $PrinterObjects.PortName
+    $PortObjects = Foreach ($PortName in $PortNames) {Get-WmiObject -Class Win32_TCPIPPrinterPort -ComputerName Disney -Filter "Name='$PortName'"}
+    $PortIPs = $PortObjects.hostaddress
 }
 function Get-DisneyZebraConfigs{
+    [CmdletBinding()]
+    param ()
+   
     Get-ZebraPrinters
     $SavePath="C:\Users\alozano\Documents\WindowsPowerShell\Scripts\Zebra\Get-DisneyZebraConfigs File Dump\"
     $Data = "^XA^HH^XZ"
@@ -331,4 +336,100 @@ $BottomData = "@^XA
 @"
 Send-NetworkDataNoReply -Computer $TwinPrintTop -Port 9100 -Data $TopData
 Send-NetworkDataNoReply -Computer $TwinPrintBottom -Port 9100 -Data $BottomData
+}
+function Set-ZebraConfiguration_FoxIVTwinPrint_Top{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]
+        $TwinPrintTop,
+
+        [Parameter(Mandatory)]
+        [string]
+        $TwinPrintBottom,
+
+        [Parameter(Mandatory)]
+        [ValidateRange(1, 65535)]
+        [Int16]
+        $Port,
+
+        [Parameter(ValueFromPipeline)]
+        [string[]]
+        $Data
+    )
+
+    
+
+}
+function Send-ZebraTestShipLabel{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)][string]$Printer
+        )
+
+$Data = @"
+
+"@
+
+Send-NetworkDataNoReply -Computer $Printer -Port 9100 -Data $Data
+}
+function Get-DisneyZebraSGDConfigs{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$Destination
+    )
+
+  Get-ZebraPrinters
+    $Data =
+@"  
+! U1 getvar "device.command_override.list"
+! U1 getvar "device.command_override.active"
+"@
+
+    Foreach ($PortIP in $PortIPs){
+        $Date = Get-Date -Format yyyyMMdd_hhmmtt
+        if (Test-Connection -ComputerName $PortIP -Count 1 -BufferSize 16 -Delay 1 -quiet -ErrorAction SilentlyContinue){
+        Send-NetworkData -Data $Data -Computer $PortIP -Port 9100 | Out-File -FilePath "$Destination$PortIP`_$Date.json" -Append
+        }
+    }
+}
+function Set-ZebraSetting{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]
+        $Printer,
+
+        [Parameter(Mandatory)]
+        [ValidateRange(1, 65535)]
+        [Int16]
+        $Setting,
+
+        [Parameter(ValueFromPipeline)]
+        [string[]]
+        $NewValue
+    )        
+}
+function Send-TwinPrintTestLabelsViaUSB{
+    $PrinterNameTop = "ZDesigner 110Xi4 203 dpi"
+    $PrinterNameBottom ="ZDesigner 110Xi4 203 dpi (Copy 1)"
+
+    $ScriptBlockTop = {
+        param($PrinterNameTop)
+        $Data = @"
+
+"@
+        Out-Printer -Name $PrinterNameTop -InputObject $Data
+    }
+
+        $ScriptBlockBottom = {
+        param($PrinterNameBottom)
+        $Data = @"
+
+"@
+        Out-Printer -Name $PrinterNameBottom -InputObject $Data
+    }
+
+    Start-Job -Name "TwinPrintTop_TestLabel" -ScriptBlock $ScriptBlockTop -ArgumentList $PrinterNameTop -Verbose
+    Start-Job -Name "TwinPrintBottom_TestLabel" -ScriptBlock $ScriptBlockBottom -ArgumentList $PrinterNameBottom -Verbose
 }
