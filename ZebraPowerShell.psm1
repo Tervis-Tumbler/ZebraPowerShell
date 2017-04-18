@@ -1,16 +1,25 @@
-# CTRL + M to Expand or Collapse all
+$Script:ModulePath = (Get-Module -ListAvailable ZebraPowerShell).ModuleBase
+
+function Invoke-ProvisionZebraPrinter {
+    param (
+        
+    )
+
+}
 
 function Send-NetworkData {
     [CmdletBinding()]
     param (
+        [Alias("Computer")]
         [Parameter(Mandatory)]
         [string]
-        $Computer,
+        $ComputerName,
 
+        [Alias("Port")]
         [Parameter(Mandatory)]
         [ValidateRange(1, 65535)]
         [Int16]
-        $Port,
+        $TCPPort,
 
         [Parameter(ValueFromPipeline)]
         [string[]]
@@ -22,22 +31,19 @@ function Send-NetworkData {
         [TimeSpan]
         $Timeout = [System.Threading.Timeout]::InfiniteTimeSpan
     ) 
-
     begin {
         # establish the connection and a stream writer
         $Client = New-Object -TypeName System.Net.Sockets.TcpClient
-        $Client.Connect($Computer, $Port)
+        $Client.Connect($ComputerName, $TCPPort)
         $Stream = $Client.GetStream()
         $Writer = New-Object -Type System.IO.StreamWriter -ArgumentList $Stream, $Encoding, $Client.SendBufferSize, $true
     }
-
     process {
         # send all the input data
         foreach ($Line in $Data) {
             $Writer.WriteLine($Line)
         }
     }
-
     end {
         # flush and close the connection send
         $Writer.Flush()
@@ -72,33 +78,30 @@ function Send-NetworkData {
         $Stream.Dispose()
         $Client.Dispose()
     }
-
 }
+
 function Send-NetworkDataNoReply {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][string]$Computer,
+        [Alias("Computer")][Parameter(Mandatory)][string]$ComputerName,
         [Parameter(Mandatory)]
-        [ValidateRange(1, 65535)][Int16]$Port,
+        [Alias("Port")][ValidateRange(1, 65535)][Int16]$TCPPort,
         [Parameter(Mandatory)][string[]]$Data,
         [System.Text.Encoding]$Encoding = [System.Text.Encoding]::ASCII
-    ) 
-
+    )
     begin {
         # establish the connection and a stream writer
         $Client = New-Object -TypeName System.Net.Sockets.TcpClient
-        $Client.Connect($Computer, $Port)
+        $Client.Connect($ComputerName, $TCPPort)
         $Stream = $Client.GetStream()
         $Writer = New-Object -Type System.IO.StreamWriter -ArgumentList $Stream, $Encoding, $Client.SendBufferSize, $true
     }
-
     process {
         # send all the input data
         foreach ($Line in $Data) {
             $Writer.WriteLine($Line)
         }
     }
-
     end {
         # flush and close the connection send
         $Writer.Flush()
@@ -111,8 +114,8 @@ function Send-NetworkDataNoReply {
         $Stream.Dispose()
         $Client.Dispose()
     }
-
 }
+
 function Wait-PrinterAVailable{
     [CmdletBinding()]
     param (
@@ -120,24 +123,41 @@ function Wait-PrinterAVailable{
     )
 
     While (Test-NetConnection $PrinterName -Port 9100| ? { $_.TcpTestSucceeded -eq $false } ){
-      Write-Verbose "waiting"
-      Start-Sleep -Milliseconds 100
+        Write-Verbose "waiting"
+        Start-Sleep -Milliseconds 100
     }
 }
-function Get-ZebraPrinters {
-    [CmdletBinding()]
-    param ()
-    Write-Host "Hello World"
-    $PrintServer = "Disney"
-    $DriverNameMatchString = "ZDesigner*"
-    $DriverNamesToExcludeMatchString = "*ZDesigner LP 2844*"
-    $DeviceTypesToExcludeMatchString = "Print3D"
-    $PrinterObjects = Get-Printer -ComputerName "Disney" | where {$_.DriverName -like $DriverNameMatchString -and $_.DriverName -notlike $DriverNamesToExcludeMatchString -and $_.DeviceType -notlike $DeviceTypesToExcludeMatchString}
-    $PortNames = $PrinterObjects.PortName
-    $PortObjects = Foreach ($PortName in $PortNames) {Get-WmiObject -Class Win32_TCPIPPrinterPort -ComputerName Disney -Filter "Name='$PortName'"}
-    $PortIPs = $PortObjects.hostaddress
+
+#function Get-ZebraPrinters {
+#    [CmdletBinding()]
+#    param ()
+#    
+#    $PrintServer = "Disney"
+#    $DriverNameMatchString = "ZDesigner*"
+#    $DriverNamesToExcludeMatchString = "*ZDesigner LP 2844*"
+#    $DeviceTypesToExcludeMatchString = "Print3D"
+#    $PrinterObjects = Get-Printer -ComputerName "Disney" | where {$_.DriverName -like $DriverNameMatchString -and $_.DriverName -notlike $DriverNamesToExcludeMatchString -and $_.DeviceType -notlike $DeviceTypesToExcludeMatchString}
+#    $PortNames = $PrinterObjects.PortName
+#    $PortObjects = Foreach ($PortName in $PortNames) {Get-WmiObject -Class Win32_TCPIPPrinterPort -ComputerName Disney -Filter "Name='$PortName'"}
+#    $PortIPs = $PortObjects.hostaddress
+#}
+
+function Get-ZebraPrinterConfiguration {
+    param(
+        $ComputerName
+    )
+    process {
+        if (Test-Connection -ComputerName $ComputerName -Count 1 -BufferSize 16 -Delay 1 -quiet -ErrorAction SilentlyContinue){
+            $TemplateContent = Get-Content $ModulePath\ZebraPrinterConfiguration.template | Out-String
+
+            Send-NetworkData -Data "^XA^HH^XZ" -Computer $ComputerName -Port 9100 |
+            ConvertFrom-String -TemplateContent $TemplateContent
+        }
+    }
 }
+
 function Get-DisneyZebraConfigs{
+
     [CmdletBinding()]
     param ()
    

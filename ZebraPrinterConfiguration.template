@@ -1,0 +1,68 @@
+﻿  {Zebraconfig*:{Serial:JJK072821.12Z1220126.23630-01.S.JABI}  
+  {Darkness:+20.0}               DARKNESS          
+  {PrintSpeed:6 IPS}               PRINT SPEED       
+  {TearOff:+000}                TEAR OFF          
+  {Applicator:APPLICATOR}          PRINT MODE        
+  {MediaType:NON-CONTINUOUS}      MEDIA TYPE        
+  {SensorType:WEB}                 SENSOR TYPE       
+  {PrintMethod:DIRECT-THERMAL}      PRINT METHOD      
+  {PrintWidth:812}                 PRINT WIDTH       
+  {LabelLength:1874}                LABEL LENGTH      
+  {MaximumLength:9.0IN    228MM}      MAXIMUM LENGTH    
+  {SuppliesWarning:DISABLED}            SUPPLIES WARNING  
+  {EarlyWarning:MAINT. OFF}          EARLY WARNING     
+  {USBComm:CONNECTED}           USB COMM.         
+  {External5v:READY}               EXTERNAL 5V       
+  {ParallelComm:BIDIRECTIONAL}       PARALLEL COMM.    
+  {SerialComm:RS232}               SERIAL COMM.      
+  {Baud:9600}                BAUD              
+  {DataBits:8 BITS}              DATA BITS         
+  {Parity:NONE}                PARITY            
+  {HostHandshake:XON/XOFF}            HOST HANDSHAKE    
+  {Protocol:NONE}                PROTOCOL          
+  {NetworkID:000}                 NETWORK ID        
+  {Communications:NORMAL MODE}         COMMUNICATIONS    
+  {ControlPrefix:<~>  7EH}            CONTROL PREFIX    
+  {FormatPrefix:<^>  5EH}            FORMAT PREFIX     
+  {Delimiter:<,>  2CH}            DELIMITER CHAR    
+  {ZPLMode:ZPL II}              ZPL MODE          
+  {CommandOverride:ACTIVE}              COMMAND OVERRIDE  
+  {MediaPowerUp:NO MOTION}           MEDIA POWER UP    
+  {HeadClose:NO MOTION}           HEAD CLOSE        
+  {Backfeed:OFF}                 BACKFEED          
+  {LabelTop:+080}                LABEL TOP         
+  {LeftPosition:+0000}               LEFT POSITION     
+  {VerifierPort:OFF}                 VERIFIER PORT     
+  {ApplicatorPort:MODE 1}              APPLICATOR PORT   
+  {ErrorOnPause:ENABLED}             ERROR ON PAUSE    
+  {StartPrintSig:PULSE MODE}          START PRINT SIG   
+  {ResynchMode:FEED MODE}           RESYNCH MODE      
+  {ReprintMode:DISABLED}            REPRINT MODE      
+  {WebSensor:048}                 WEB S.            
+  {MediaSensor:079}                 MEDIA S.          
+  {RibbonSensor:065}                 RIBBON S.         
+  {TakeLabel:100}                 TAKE LABEL        
+  {MarkSensor:050}                 MARK S.           
+  {MarkMedSensor:000}                 MARK MED S.       
+  {TrainsGain:002}                 TRANS GAIN        
+  {TransBase:040}                 TRANS BASE        
+  {TransBright:086}                 TRANS BRIGHT      
+  {RibbonGain:082}                 RIBBON GAIN       
+  {MarkGain:000}                 MARK GAIN         
+  {ModesEnable:DPCSWFX.}            MODES ENABLED     
+  {ModesDisabled:.......M}            MODES DISABLED    
+   {Resolution:832 8/MM FULL}      RESOLUTION        
+  {Firmware:V53.17.21Z <-}       FIRMWARE          
+  {XMLSchema:1.3}                 XML SCHEMA        
+  {HardwareID:V45 ---------- 19}   HARDWARE ID       
+  {Configuration:CUSTOMIZED}          CONFIGURATION     
+  {RAM:10840k...........R:} RAM               
+  {OnboardFlash:2048k............E:} ONBOARD FLASH     
+  {FormatConvert:NONE}                FORMAT CONVERT    
+  {P34Interface:*** APPLICATOR}      P34 INTERFACE     
+                      TWINAX/COAX ID    
+  {IdleDisplay:FW VERSION}          IDLE DISPLAY      
+  {RTCDate:11/05/15}            RTC DATE          
+  {RTCTime:11:22}               RTC TIME          
+  {ZBI:DISABLED}            ZBI               
+  {ZBIVersion:2.1}}                 ZBI VERSION       
