@@ -453,3 +453,40 @@ function Send-TwinPrintTestLabelsViaUSB{
     Start-Job -Name "TwinPrintTop_TestLabel" -ScriptBlock $ScriptBlockTop -ArgumentList $PrinterNameTop -Verbose
     Start-Job -Name "TwinPrintBottom_TestLabel" -ScriptBlock $ScriptBlockBottom -ArgumentList $PrinterNameBottom -Verbose
 }
+
+function Set-CommandOverrideActive_Off{
+    [cmdletbinding()]
+    param(
+        [parameter(mandatory)][string]$Printer
+    )
+    $Port = 9100
+    $Data = 
+    '@
+    ! U1 setvar "device.command_override.active" "no"
+    @'
+    Send-TCPtoZebraNoReply -Computer $Printer -Port $Port -Data $Data
+}
+function Set-CommandOverrideActive_On{
+    [cmdletbinding()]
+    param(
+        [parameter(mandatory)][string]$Printer
+    )
+    $Port = 9100
+    $Data = 
+    '@
+    ! U1 setvar "device.command_override.active" "yes"
+    @'
+    Send-TCPtoZebraNoReply -Computer $Printer -Port $Port -Data $Data
+}
+function Set-CommandOverrideClear{
+    [cmdletbinding()]
+    param(
+        [parameter(mandatory)][string]$Printer
+    )
+    $Port = 9100
+    $Data = 
+    '@
+    ! U1 setvar "device.command_override.clear"
+    @'
+    Send-TCPtoZebraNoReply -Computer $Printer -Port $Port -Data $Data
+}
