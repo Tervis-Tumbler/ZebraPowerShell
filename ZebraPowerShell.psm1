@@ -607,16 +607,10 @@ function Set-ZebraCommandOverrideActive{
     )
     
     if ($CommandOverrideSetting -eq "Yes"){
-        $Data =
-'@
-! U1 setvar "device.command_override.active" "yes"
-@'
+        $Data = '! U1 setvar "device.command_override.active" "yes"'
     }
     elseif ($CommandOverrideSetting -eq "No"){
-        $Data =
-'@
-! U1 setvar "device.command_override.active" "no"
-@'
+        $Data = '! U1 setvar "device.command_override.active" "no"'
     }
 
     Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $Data -Verbose
@@ -627,38 +621,19 @@ function Set-ZebraCommandOverrideClear{
     param(
         [parameter(mandatory)][string]$PrinterName
     )
-    $Data = 
-'@
-! U1 setvar "device.command_override.clear"
-@'
+    $Data = '! U1 setvar "device.command_override.clear"'
     
     Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $Data -Verbose
 }
 
-function Set-ZebraCommandOverrideStandard{
+function Set-ZebraMenuMode{
     [cmdletbinding()]
     param(
         [parameter(mandatory)][string]$PrinterName
     )
-    $Data = 
-'@
-! U1 setvar "device.command_override.add" "^JJ"
-! U1 setvar "device.command_override.add" "^JS"
-! U1 setvar "device.command_override.add" "^LL"
-! U1 setvar "device.command_override.add" "^LT"
-! U1 setvar "device.command_override.add" "^MD"
-! U1 setvar "device.command_override.add" "^MM"
-! U1 setvar "device.command_override.add" "^MN"
-! U1 setvar "device.command_override.add" "^MT"
-! U1 setvar "device.command_override.add" "^PH"
-! U1 setvar "device.command_override.add" "^PR"
-! U1 setvar "device.command_override.add" "^PW"
-! U1 setvar "device.command_override.add" "~JS"
-! U1 setvar "device.command_override.add" "~SD"
-! U1 setvar "device.command_override.add" "~TA"
-@'
-    
-    Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $Data -Verbose
+    $Data = "^XA^Mpe^MPm^XZ"
+
+    Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $Data
 }
 
 function Set-ZebraStandardConfiguration{
@@ -699,11 +674,14 @@ function Set-ZebraStandardConfiguration{
         $NameAndTypeData = "^XA^KN$PrinterName,$PrinterType Small_UPC^XZ"
         
         Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $Data -Verbose
-        sleep -Milliseconds 500
+        sleep -Milliseconds 300
         Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $NameAndTypeData -Verbose
     }
 
-    sleep -Milliseconds 500
+    sleep -Milliseconds 300
+    Set-ZebraMenuMode
+    sleep -Milliseconds 300
     Set-ZebraCommandOverrideStandard -PrinterName $PrinterName
+    sleep -Milliseconds 300
     Set-ZebraCommandOverrideActive -PrinterName $PrinterName -CommandOverrideSetting Yes
 }
