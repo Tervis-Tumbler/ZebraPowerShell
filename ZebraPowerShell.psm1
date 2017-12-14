@@ -1,12 +1,5 @@
 $Script:ModulePath = (Get-Module -ListAvailable ZebraPowerShell).ModuleBase
 
-function Invoke-ProvisionZebraPrinter {
-    param (
-        
-    )
-
-}
-
 function Wait-PrinterAVailable{
     [CmdletBinding()]
     param (
@@ -17,6 +10,52 @@ function Wait-PrinterAVailable{
         Write-Verbose "waiting"
         Start-Sleep -Milliseconds 100
     }
+}
+
+function Send-TCPtoZebra{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]
+        $PrinterName,
+
+        [Parameter()]
+        [ValidateRange(1, 65535)]
+        [Int16]
+        $Port = 9100,
+
+        [Parameter(ValueFromPipeline)]
+        [string[]]
+        $Data
+    )
+        
+    if (Test-Connection -ComputerName $PrinterName -Count 1 -BufferSize 16 -Delay 1 -quiet -ErrorAction SilentlyContinue)
+        {
+        Send-NetworkData -Data $Data -Computer $PrinterName -Port $Port
+        }
+}
+
+function Send-TCPtoZebraNoReply{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]
+        $PrinterName,
+
+        [Parameter()]
+        [ValidateRange(1, 65535)]
+        [Int16]
+        $Port = 9100,
+
+        [Parameter(ValueFromPipeline)]
+        [string[]]
+        $Data
+    )
+    
+if (Test-Connection -ComputerName $PrinterName -Count 1 -BufferSize 16 -Delay 1 -quiet -ErrorAction SilentlyContinue)
+        {
+        Send-NetworkDataNoReply -Data $Data -Computer $PrinterName -Port $Port
+        }
 }
 
 <#
@@ -66,54 +105,7 @@ function Get-DisneyZebraConfigs{
     }
 }
 
-function Send-TCPtoZebra{
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory)]
-        [string]
-        $Computer,
-
-        [Parameter(Mandatory)]
-        [ValidateRange(1, 65535)]
-        [Int16]
-        $Port,
-
-        [Parameter(ValueFromPipeline)]
-        [string[]]
-        $Data
-    )
-    $Port=9100
-    
-if (Test-Connection -ComputerName $PortIP -Count 1 -BufferSize 16 -Delay 1 -quiet -ErrorAction SilentlyContinue)
-        {
-        Send-NetworkData -Data $Data -Computer $PortIP -Port $Port
-        }
-}
-
-function Send-TCPtoZebraNoReply{
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory)]
-        [string]
-        $Computer,
-
-        [Parameter(Mandatory)]
-        [ValidateRange(1, 65535)]
-        [Int16]
-        $Port,
-
-        [Parameter(ValueFromPipeline)]
-        [string[]]
-        $Data
-    )
-    $Port=9100
-    
-if (Test-Connection -ComputerName $PortIP -Count 1 -BufferSize 16 -Delay 1 -quiet -ErrorAction SilentlyContinue)
-        {
-        Send-NetworkDataNoReply -Data $Data -Computer $PortIP -Port $Port
-        }
-}
-
+<#
 function Send-TwinPrintCalibrationCommands{
     [CmdletBinding()]
     param (
@@ -344,45 +336,6 @@ function Send-TwinPrintTestLabelsViaUSB{
     Start-Job -Name "TwinPrintBottom_TestLabel" -ScriptBlock $ScriptBlockBottom -ArgumentList $PrinterNameBottom -Verbose
 }
 
-function Set-CommandOverrideActive_Off{
-    [cmdletbinding()]
-    param(
-        [parameter(mandatory)][string]$Printer
-    )
-    $Port = 9100
-    $Data = 
-    '@
-    ! U1 setvar "device.command_override.active" "no"
-    @'
-    Send-TCPtoZebraNoReply -Computer $Printer -Port $Port -Data $Data
-}
-
-function Set-CommandOverrideActive_On{
-    [cmdletbinding()]
-    param(
-        [parameter(mandatory)][string]$Printer
-    )
-    $Port = 9100
-    $Data = 
-    '@
-    ! U1 setvar "device.command_override.active" "yes"
-    @'
-    Send-TCPtoZebraNoReply -Computer $Printer -Port $Port -Data $Data
-}
-
-function Set-CommandOverrideClear{
-    [cmdletbinding()]
-    param(
-        [parameter(mandatory)][string]$Printer
-    )
-    $Port = 9100
-    $Data = 
-    '@
-    ! U1 setvar "device.command_override.clear"
-    @'
-    Send-TCPtoZebraNoReply -Computer $Printer -Port $Port -Data $Data
-}
-
 function Send-ZebraTwinPrintTestPrint{
     [cmdletbinding()]
     param(
@@ -568,4 +521,189 @@ $Data = @"
 "@
 
 Send-NetworkDataNoReply -Computer $Printer -Port 9100 -Data $Data
+}
+#>
+
+function Invoke-ProvisionZebraPrinter {
+    param (
+        
+    )
+
+}
+
+function Get-ZebraCommandOverrideActive{
+    [cmdletbinding()]
+    param(
+        [cmdletbinding()]
+        [parameter(mandatory)][string]$PrinterName
+    )
+    $Data =
+'@
+! U1 getvar "device.command_override.active"
+@'
+
+    Send-TCPtoZebra -PrinterName $PrinterName -Data $Data -Verbose
+}
+
+function Get-ZebraCommandOverrideList{
+    [cmdletbinding()]
+    param(
+        [cmdletbinding()]
+        [parameter(mandatory)][string]$PrinterName
+    )
+    $Data =
+'@
+! U1 getvar "device.command_override.list"
+@'
+
+    Send-TCPtoZebra -PrinterName $PrinterName -Data $Data -Verbose
+}
+
+function Set-ZebraDefaultSettings{
+    [cmdletbinding()]
+    param(
+        [parameter(mandatory)][string]$PrinterName
+    )
+    $Data = 
+'@
+^xa^juf^xz
+@'
+    
+    Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $Data -Verbose
+}
+
+function Set-ZebraCommandOverrideStandard{
+    [cmdletbinding()]
+    param(
+        [parameter(mandatory)][string]$PrinterName
+    )
+    $Data = 
+'@
+! U1 setvar "device.command_override.add" "^JJ"
+! U1 setvar "device.command_override.add" "^JS"
+! U1 setvar "device.command_override.add" "^LL"
+! U1 setvar "device.command_override.add" "^LT"
+! U1 setvar "device.command_override.add" "^MD"
+! U1 setvar "device.command_override.add" "^MM"
+! U1 setvar "device.command_override.add" "^MN"
+! U1 setvar "device.command_override.add" "^MT"
+! U1 setvar "device.command_override.add" "^PH"
+! U1 setvar "device.command_override.add" "^PR"
+! U1 setvar "device.command_override.add" "^PW"
+! U1 setvar "device.command_override.add" "~JS"
+! U1 setvar "device.command_override.add" "~SD"
+! U1 setvar "device.command_override.add" "~TA"
+@'
+   
+    Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $Data -Verbose
+}
+
+function Set-ZebraCommandOverrideActive{
+    [cmdletbinding()]
+    param(
+        [cmdletbinding()]
+        [parameter(mandatory)][string]$PrinterName,
+        [parameter(mandatory)][validateset("Yes","No")][string]$CommandOverrideSetting
+    )
+    
+    if ($CommandOverrideSetting -eq "Yes"){
+        $Data =
+'@
+! U1 setvar "device.command_override.active" "yes"
+@'
+    }
+    elseif ($CommandOverrideSetting -eq "No"){
+        $Data =
+'@
+! U1 setvar "device.command_override.active" "no"
+@'
+    }
+
+    Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $Data -Verbose
+}
+
+function Set-ZebraCommandOverrideClear{
+    [cmdletbinding()]
+    param(
+        [parameter(mandatory)][string]$PrinterName
+    )
+    $Data = 
+'@
+! U1 setvar "device.command_override.clear"
+@'
+    
+    Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $Data -Verbose
+}
+
+function Set-ZebraCommandOverrideStandard{
+    [cmdletbinding()]
+    param(
+        [parameter(mandatory)][string]$PrinterName
+    )
+    $Data = 
+'@
+! U1 setvar "device.command_override.add" "^JJ"
+! U1 setvar "device.command_override.add" "^JS"
+! U1 setvar "device.command_override.add" "^LL"
+! U1 setvar "device.command_override.add" "^LT"
+! U1 setvar "device.command_override.add" "^MD"
+! U1 setvar "device.command_override.add" "^MM"
+! U1 setvar "device.command_override.add" "^MN"
+! U1 setvar "device.command_override.add" "^MT"
+! U1 setvar "device.command_override.add" "^PH"
+! U1 setvar "device.command_override.add" "^PR"
+! U1 setvar "device.command_override.add" "^PW"
+! U1 setvar "device.command_override.add" "~JS"
+! U1 setvar "device.command_override.add" "~SD"
+! U1 setvar "device.command_override.add" "~TA"
+@'
+    
+    Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $Data -Verbose
+}
+
+function Set-ZebraStandardConfiguration{
+    [cmdletbinding()]
+    param(
+        [parameter(mandatory)]
+            [string]$PrinterName,
+        [parameter(mandatory)]
+            [validateset("UPC","GS1","Shipping")]
+            [string]$PrinterType,
+        [parameter(mandatory)]
+            [validateset("110Xi4","FoxIV TwinPrint","FoxIV TwinPrint Mod6")]
+            [string]$PrinterModel
+    )
+    
+    Set-ZebraCommandOverrideActive -PrinterName $PrinterName -CommandOverrideSetting No
+    Set-ZebraCommandOverrideClear -PrinterName $PrinterName
+    sleep -Milliseconds 500
+
+    if ($PrinterType -eq "UPC"){
+        $Data = "^XA~SD15^PR8,6,6^MMt^MNw^MTt^ML11700^MFs,f~JSn^LT0^JJ,0,0,p,f,d,e^KP9627^PW750^XZ"
+        $NameAndTypeData = "^XA^KN$PrinterName,$PrinterType Small_UPC^XZ"
+        
+        Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $Data -Verbose
+        sleep -Milliseconds 500
+        Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $NameAndTypeData -Verbose
+    }
+    elseif ($PrinterType -eq "GS1"){
+        $Data = "^XA~SD15^PR8,6,6^MMt^MNw^MTt^ML11700^MFs,f~JSn^LT0^JJ,0,0,p,f,d,e^KP9627^PW750^XZ"
+        $NameAndTypeData = "^XA^KN$PrinterName,$PrinterType Small_UPC^XZ"
+        
+        Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $Data -Verbose
+        sleep -Milliseconds 500
+        Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $NameAndTypeData -Verbose
+    }
+    elseif ($PrinterType -eq "Shipping"){
+        $Data = "^XA~SD15^PR8,8,6^MMt^MNw^MTd^ML7967^MFs,n~JSn^LT0^JJ,0,0,p,f,d,e^KP9627^XZ"
+        $NameAndTypeData = "^XA^KN$PrinterName,$PrinterType Small_UPC^XZ"
+        
+        Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $Data -Verbose
+        sleep -Milliseconds 500
+        Send-TCPtoZebraNoReply -PrinterName $PrinterName -Data $NameAndTypeData -Verbose
+    }
+
+    sleep -Milliseconds 500
+    Set-ZebraCommandOverrideStandard -PrinterName $PrinterName
+    Set-ZebraCommandOverrideActive -PrinterName $PrinterName -CommandOverrideSetting Yes
 }
