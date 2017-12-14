@@ -559,7 +559,7 @@ function Get-ZebraCommandOverrideList{
     Send-TCPtoZebra -PrinterName $PrinterName -Data $Data -Verbose
 }
 
-function Set-ZebraDefaultSettings{
+function Set-ZebraFactoryDefaultSettings{
     [cmdletbinding()]
     param(
         [parameter(mandatory)][string]$PrinterName
