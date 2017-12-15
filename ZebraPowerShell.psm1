@@ -335,7 +335,7 @@ function Send-TwinPrintTestLabelsViaUSB{
     Start-Job -Name "TwinPrintTop_TestLabel" -ScriptBlock $ScriptBlockTop -ArgumentList $PrinterNameTop -Verbose
     Start-Job -Name "TwinPrintBottom_TestLabel" -ScriptBlock $ScriptBlockBottom -ArgumentList $PrinterNameBottom -Verbose
 }
-
+#>
 function Send-ZebraTwinPrintTestPrint{
     [cmdletbinding()]
     param(
@@ -509,7 +509,7 @@ eJzswQEBAAAAgJD+r+4ICgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYAAD//+ycwa8cNx3H
     Send-NetworkDataNoReply -ComputerName $ZebraPrinterTop -TCPPort $TCPPort -Data $DataTop
     Send-NetworkDataNoReply -ComputerName $ZebraPrinterBottom -TCPPort $TCPPort -Data $DataBottom
 }
-
+<#
 function Send-ZebraSingleSidedTestShipLabel{
     [CmdletBinding()]
     param (
@@ -679,7 +679,7 @@ function Set-ZebraStandardConfiguration{
     }
 
     sleep -Milliseconds 300
-    Set-ZebraMenuMode
+    Set-ZebraMenuMode -PrinterName $PrinterName
     sleep -Milliseconds 300
     Set-ZebraCommandOverrideStandard -PrinterName $PrinterName
     sleep -Milliseconds 300
