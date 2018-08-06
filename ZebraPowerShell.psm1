@@ -685,3 +685,20 @@ function Set-ZebraStandardConfiguration{
     sleep -Milliseconds 300
     Set-ZebraCommandOverrideActive -PrinterName $PrinterName -CommandOverrideSetting Yes
 }
+
+function Send-PrinterData {
+    param (
+        [Parameter(Mandatory)]$Data,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    $Client = New-TCPClient
+    $Stream = $Client | 
+    Connect-TCPClient -ComputerName $ComputerName -Port 9100 -Passthru | 
+    New-TCPClientStream
+
+    Write-TCPStream -Client $Client -Stream $Stream -Data $Data
+
+    #$Stream | Read-TCPStream -Client $Client
+
+    $Client | Disconnect-TCPClient
+}
